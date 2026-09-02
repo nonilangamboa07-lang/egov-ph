@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Joke Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .joke-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .joke-container h1 {
+            color: #1f3c88;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .joke-display {
+            background: linear-gradient(135deg, #e0f6ff 0%, #fff9e6 100%);
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .joke-text {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .joke-category {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #0066cc;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-joke {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-joke:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-share {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-share:hover {
+            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .joke-categories {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .joke-categories p {
+            margin-bottom: 15px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .category-btn:hover {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .category-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .joke-counter {
+            color: #999;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">eGOV<span class="logo-ph">PH</span></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="profile.html">My Profile</a></li>
+                <li><a href="joke.html" class="active">Joke Generator</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="joke-container">
+            <h1>😂 Random Joke Generator</h1>
+            
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="joke-display">
+                <div class="joke-text" id="jokeText">
+                    Click "Get Joke" to load a random joke!
+                </div>
+            </div>
+
+            <div id="categoryDisplay"></div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading joke...</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-joke" onclick="getJoke()">🎲 Get Joke</button>
+                <button class="btn-joke btn-share" onclick="shareJoke()">📤 Share Joke</button>
+            </div>
+
+            <div class="joke-categories">
+                <p>Filter by Category:</p>
+                <div class="category-buttons">
+                    <button class="category-btn active" onclick="setCategory('any')">Any</button>
+                    <button class="category-btn" onclick="setCategory('general')">General</button>
+                    <button class="category-btn" onclick="setCategory('programming')">Programming</button>
+                    <button class="category-btn" onclick="setCategory('knock-knock')">Knock Knock</button>
+                </div>
+            </div>
+
+            <div class="joke-counter">
+                <p id="jokeCount">Jokes loaded: 0</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 eGOV.PH - All Rights Reserved</p>
+    </footer>
+
+    <script>
+        let currentJoke = {};
+        let jokeCount = 0;
+        let selectedCategory = 'any';
+
+        async function getJoke() {
+            const loading = document.getElementById('loading');
+            const jokeText = document.getElementById('jokeText');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            try {
+                // Using JokeAPI - https://jokeapi.dev/
+                let url = 'https://v2.jokeapi.dev/joke/';
+                
+                if (selectedCategory === 'any') {
+                    url += 'Any';
+                } else if (selectedCategory === 'general') {
+                    url += 'General';
+                } else if (selectedCategory === 'programming') {
+                    url += 'Programming';
+                } else if (selectedCategory === 'knock-knock') {
+                    url += 'Knock-Knock';
+                }
+
+                url += '?type=single'; // Get single-part jokes
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch joke');
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.message || 'Could not load joke');
+                }
+
+                currentJoke = data;
+                jokeText.textContent = data.joke;
+                
+                // Show category
+                const categoryDisplay = document.getElementById('categoryDisplay');
+                categoryDisplay.innerHTML = `<div class="joke-category">${data.category}</div>`;
+                
+                jokeCount++;
+                document.getElementById('jokeCount').textContent = `Jokes loaded: ${jokeCount}`;
+
+            } catch (error) {
+                errorMessage.textContent = `❌ Error: ${error.message}`;
+                errorMessage.style.display = 'block';
+                jokeText.textContent = 'Could not load joke. Please try again!';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function setCategory(category) {
+            selectedCategory = category;
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load a new joke
+            getJoke();
+        }
+
+        function shareJoke() {
+            if (!currentJoke.joke) {
+                alert('Please load a joke first!');
+                return;
+            }
+
+            const text = `Check out this joke! 😂\n\n${currentJoke.joke}\n\nGenerated by eGOV.PH Joke Generator`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Joke copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Joke copied to clipboard!');
+            });
+        }
+
+        // Load a joke when page loads
+        window.addEventListener('load', function() {
+            getJoke();
+        });
+    </script>
+</body>
+</html>
