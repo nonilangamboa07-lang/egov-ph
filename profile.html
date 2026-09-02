@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Digital Profile - eGOV.PH</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">eGOV<span class="logo-ph">PH</span></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="profile.html" class="active">My Profile</a></li>
+                <li><a href="joke.html">Joke Generator</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1>🆔 My Digital Profile</h1>
+                <p class="verified-badge">✅ Verified Identity</p>
+            </div>
+
+            <div class="profile-section">
+                <h2>Personal Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" placeholder="Juan Dela Cruz">
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDate">Date of Birth *</label>
+                        <input type="date" id="birthDate">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="idNumber">National ID Number</label>
+                        <input type="text" id="idNumber" placeholder="12-3456789-0">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="juan@example.com">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+            </div>
+
+            <div class="profile-section">
+                <h2>Digital ID Card</h2>
+                <div class="id-card">
+                    <div class="id-card-header">
+                        <span class="ph-seal">🏛️</span>
+                        <h3>DIGITAL ID CARD</h3>
+                        <p>Philippine E-Government Portal</p>
+                    </div>
+                    <div class="id-card-content">
+                        <div class="id-photo">
+                            <div class="photo-placeholder">Photo</div>
+                        </div>
+                        <div class="id-info">
+                            <p><strong>Name:</strong> <span id="cardName">-</span></p>
+                            <p><strong>DOB:</strong> <span id="cardDOB">-</span></p>
+                            <p><strong>ID Number:</strong> <span id="cardID">-</span></p>
+                            <p><strong>Status:</strong> ✅ Verified</p>
+                            <p><strong>Valid Until:</strong> <span id="cardExpiry">-</span></p>
+                        </div>
+                        <div class="id-qr">
+                            <p style="font-size: 12px; margin-bottom: 10px;">QR Code</p>
+                            <div id="qrcode"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="generateID()">🔄 Generate ID</button>
+            </div>
+
+            <div class="profile-section">
+                <h2>📤 Shareable Profile Link</h2>
+                <p>Generate a secure link to share your verified profile information with others.</p>
+                
+                <div class="link-options">
+                    <label>
+                        <input type="checkbox" id="includePhoto" checked>
+                        Include Photo
+                    </label>
+                    <label>
+                        <input type="checkbox" id="includeEmail" checked>
+                        Include Email
+                    </label>
+                    <label>
+                        <input type="checkbox" id="expiryEnabled">
+                        Link Expiry (Days):
+                        <input type="number" id="expiryDays" value="7" disabled>
+                    </label>
+                </div>
+
+                <button class="btn-primary" onclick="generateLink()">🔗 Generate Link</button>
+
+                <div id="linkResult" class="link-result" style="display: none;">
+                    <h3>Your Shareable Link:</h3>
+                    <div class="link-box">
+                        <input type="text" id="shareLink" readonly>
+                        <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                    </div>
+                    <div class="link-info">
+                        <p>✅ This link can be shared with trusted contacts</p>
+                        <p>🔒 Personal sensitive information is protected</p>
+                    </div>
+                    <h4>QR Code:</h4>
+                    <div id="shareQR"></div>
+                    <div class="share-buttons">
+                        <button class="btn-share" onclick="shareViaEmail()">📧 Share via Email</button>
+                        <button class="btn-share" onclick="shareViaSMS()">💬 Share via SMS</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h2>Verification Status</h2>
+                <p>✅ <strong>Identity Verified</strong> - Your profile has been successfully verified and is ready to use.</p>
+                <p>📅 Last Verified: <span id="lastVerified">Today</span></p>
+                <button class="btn-primary" onclick="reverify()">🔐 Reverify Identity</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 eGOV.PH - All Rights Reserved</p>
+    </footer>
+
+    <script src="profile.js"></script>
+</body>
+</html>
