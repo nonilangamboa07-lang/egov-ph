@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Digital ID - eGOV.PH</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">eGOV<span class="logo-ph">PH</span></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="profile.html">My Profile</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container profile-container">
+        <div class="profile-header">
+            <h1>Digital ID Verification</h1>
+        </div>
+
+        <div id="loadingSpinner" class="profile-section" style="text-align: center;">
+            <p>Loading verification data...</p>
+        </div>
+
+        <div id="verificationResult" class="profile-section" style="display: none;">
+            <!-- Verification Status -->
+            <div id="statusContainer" style="text-align: center; margin-bottom: 30px;">
+                <div id="statusBadge" class="status-badge"></div>
+                <h2 id="statusMessage"></h2>
+                <p id="statusDetail"></p>
+            </div>
+
+            <!-- Verified Profile Card -->
+            <div id="profileCard" style="display: none;">
+                <h2>Verified Profile Information</h2>
+                
+                <!-- Digital ID Card -->
+                <div class="id-card">
+                    <div class="id-card-header">
+                        <span class="ph-seal">🇵🇭</span>
+                        <h3>PAMBANSANG PAGKAKAKILANLAN</h3>
+                        <p>Philippine Identification Card</p>
+                    </div>
+                    <div class="id-card-content">
+                        <div class="id-photo">
+                            <div class="photo-placeholder">Photo</div>
+                        </div>
+                        <div class="id-info">
+                            <p><strong>Name:</strong> <span id="verifyName"></span></p>
+                            <p><strong>Date of Birth:</strong> <span id="verifyBirthday"></span></p>
+                            <p><strong>Gender:</strong> <span id="verifyGender"></span></p>
+                            <p><strong>Blood Type:</strong> <span id="verifyBlood"></span></p>
+                            <p><strong>Civil Status:</strong> <span id="verifyStatus"></span></p>
+                            <p id="addressRow"><strong>Address:</strong> <span id="verifyAddress"></span></p>
+                            <p id="idRow"><strong>ID Number:</strong> <span id="verifyID"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Details -->
+                <div class="verification-details">
+                    <h3>Verification Details</h3>
+                    <div class="detail-item">
+                        <span class="label">Digital ID:</span>
+                        <span id="verifyDigitalId" class="value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Verification Hash:</span>
+                        <span id="verifyHash" class="value" style="font-family: monospace; font-size: 12px;"></span>
+                    </div>
+                    <div class="detail-item" id="expireRow" style="display: none;">
+                        <span class="label">Expires:</span>
+                        <span id="verifyExpire" class="value"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Verification Status:</span>
+                        <span class="value" style="color: #28a745;"><strong>✓ Verified</strong></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="verification-actions">
+                    <button class="btn-primary" onclick="downloadProfile()">Download Profile</button>
+                    <button class="btn-primary" onclick="printProfile()">Print Profile</button>
+                    <button class="btn-primary" onclick="window.location.href='index.html'">Back to Home</button>
+                </div>
+            </div>
+
+            <!-- Invalid Link -->
+            <div id="invalidCard" style="display: none;">
+                <div style="text-align: center; padding: 40px;">
+                    <h2 style="color: #dc3545;">Invalid or Expired Link</h2>
+                    <p>The verification link you provided is invalid, expired, or missing required information.</p>
+                    <button class="btn-primary" onclick="window.location.href='profile.html'" style="margin-top: 20px;">Create New Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 eGOV.PH - All Rights Reserved</p>
+    </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            verifyProfile();
+        });
+
+        function verifyProfile() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Extract all parameters
+            const firstName = params.get('fn');
+            const middleName = params.get('mn');
+            const lastName = params.get('ln');
+            const birthday = params.get('dob');
+            const gender = params.get('gender');
+            const bloodType = params.get('blood');
+            const maritalStatus = params.get('status');
+            const address = params.get('addr');
+            const idNumber = params.get('id');
+            const digitalId = params.get('did');
+            const verified = params.get('verified');
+            const expireDate = params.get('expire');
+            const hash = params.get('hash');
+            const showPhoto = params.get('photo');
+            const showId = params.get('showid');
+
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('verificationResult').style.display = 'block';
+
+            // Validate required parameters
+            if (!firstName || !lastName || !birthday || !idNumber || !verified) {
+                showInvalidCard();
+                return;
+            }
+
+            // Check expiration
+            if (expireDate) {
+                const expire = new Date(expireDate);
+                const today = new Date();
+                if (today > expire) {
+                    showInvalidCard();
+                    return;
+                }
+            }
+
+            // Show valid profile
+            showValidProfile(firstName, middleName, lastName, birthday, gender, bloodType, maritalStatus, address, idNumber, digitalId, expireDate, hash, showPhoto, showId);
+        }
+
+        function showValidProfile(fn, mn, ln, dob, gender, blood, status, addr, id, did, expire, hash, showPhoto, showId) {
+            // Format name
+            let fullName = fn;
+            if (mn) fullName += ' ' + mn;
+            fullName += ' ' + ln;
+
+            // Format birthday
+            let formattedBirthday = dob;
+            if (dob) {
+                const date = new Date(dob);
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+                formattedBirthday = months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+            }
+
+            // Update status
+            document.getElementById('statusBadge').innerHTML = '<span style="font-size: 48px; color: #28a745;">✓</span>';
+            document.getElementById('statusMessage').textContent = 'Identity Verified';
+            document.getElementById('statusDetail').textContent = 'This digital identity has been verified by eGOV.PH';
+
+            // Update profile card
+            document.getElementById('verifyName').textContent = fullName;
+            document.getElementById('verifyBirthday').textContent = formattedBirthday;
+            document.getElementById('verifyGender').textContent = gender || 'N/A';
+            document.getElementById('verifyBlood').textContent = blood || 'N/A';
+            document.getElementById('verifyStatus').textContent = status || 'N/A';
+            document.getElementById('verifyAddress').textContent = addr || 'N/A';
+            document.getElementById('verifyID').textContent = id || 'N/A';
+            document.getElementById('verifyDigitalId').textContent = did || 'N/A';
+            document.getElementById('verifyHash').textContent = hash || 'N/A';
+
+            // Show/hide optional fields
+            document.getElementById('addressRow').style.display = addr ? 'block' : 'none';
+            document.getElementById('idRow').style.display = showId ? 'block' : 'none';
+
+            // Handle expiration
+            if (expire) {
+                document.getElementById('expireRow').style.display = 'block';
+                const expireDate = new Date(expire);
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+                const formattedExpire = months[expireDate.getMonth()] + ' ' + expireDate.getDate() + ', ' + expireDate.getFullYear();
+                document.getElementById('verifyExpire').textContent = formattedExpire;
+            }
+
+            // Show profile card
+            document.getElementById('profileCard').style.display = 'block';
+        }
+
+        function showInvalidCard() {
+            document.getElementById('profileCard').style.display = 'none';
+            document.getElementById('invalidCard').style.display = 'block';
+        }
+
+        function downloadProfile() {
+            const params = new URLSearchParams(window.location.search);
+            const firstName = params.get('fn');
+            const lastName = params.get('ln');
+            const birthday = params.get('dob');
+            
+            const profileData = {
+                name: firstName + ' ' + lastName,
+                dateOfBirth: birthday,
+                verified: true,
+                verifiedAt: new Date().toISOString(),
+                profileUrl: window.location.href
+            };
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(profileData, null, 2)));
+            element.setAttribute('download', 'egov_profile_' + Date.now() + '.json');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function printProfile() {
+            window.print();
+        }
+    </script>
+
+    <style>
+        .status-badge {
+            margin-bottom: 20px;
+        }
+
+        .verification-details {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item .label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-item .value {
+            color: #666;
+            text-align: right;
+        }
+
+        .verification-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .verification-actions .btn-primary {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        @media print {
+            .navbar, footer, .verification-actions {
+                display: none;
+            }
+
+            .profile-section {
+                box-shadow: none;
+            }
+        }
+    </style>
+</body>
+</html>
